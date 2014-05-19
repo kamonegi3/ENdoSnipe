@@ -721,7 +721,7 @@ public class Property
                 + ", fontSize=" + fontSize_ + ", textAnchor=" + textAnchor_ + ", fontFamily="
                 + fontFamily_ + ", text=" + text_ + ", resourceId=" + resourceId_ + ", target="
                 + target_ + ", name=" + name_ + ", level=" + level_ + ", threshold=" + threshold_
-                + ", period=" + period_ + ", type=" + objectType_ + ", method=" + method_ + ", border="
+                + ", period=" + period_ + ", objectType=" + objectType_ + ", method=" + method_ + ", border="
                 + border_ + ", label=" + label_ + ", signal=" + signal_ + "]";
     }
 

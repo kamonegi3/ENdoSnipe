@@ -13,6 +13,7 @@
 package jp.co.acroquest.endosnipe.report;
 
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * 
@@ -36,6 +37,12 @@ public class ReportData
 	 * targetMeasurementName for report data
 	 */
 	public String targetMeasurementName;
+	
+	
+	/**
+	 * targetMeasurementPattern for report data
+	 */
+	public List<String> targetMeasurementPattern;
 
 	/**
 	 * reportTermFrom for report data
@@ -122,6 +129,24 @@ public class ReportData
 	public void setTargetMeasurementName(String targetMeasurementName)
 	{
 		this.targetMeasurementName = targetMeasurementName;
+	}
+	
+	/**
+	 * get TargetMeasurementPattern of reportData
+	 * @return
+	 */
+	public List<String> getTargetMeasurementPattern()
+	{
+		return targetMeasurementPattern;
+	}
+
+	/**
+	 * set TargetMeasurementPattern of reportData
+	 * @param targetMeasurementPattern
+	 */
+	public void setTargetMeasurementPattern(List<String> targetMeasurementPattern)
+	{
+		this.targetMeasurementPattern = targetMeasurementPattern;
 	}
 
 	/**

@@ -323,14 +323,14 @@ public class TemplateCreator
         signalInfo.patternValue = signalProperty.getThreshold();
         signalInfo.signalName = treeName;
 
-        // マッチングパターンに ${ClusterName} を含まない場合はそのまま登録する
-        if (signalInfo.matchingPattern.indexOf(CLUSTER_NAME) == -1)
+        // シグナル名に ${ClusterName} を含まない場合はそのまま登録する
+        if (signalInfo.signalName.indexOf(CLUSTER_NAME) == -1)
         {
             addSignal(signalInfo);
             return;
         }
 
-        // マッチングパターンに ${ClusterName} を含む場合、クラスタの数分だけシグナルを作る
+        // シグナル名に ${ClusterName} を含む場合、クラスタの数分だけシグナルを作る
         List<TreeMenuDto> topNodeList = treeMenuService_.getTopNodes();
         TreeMenuDto wildcard = new TreeMenuDto();
         wildcard.setData(".*");
@@ -343,7 +343,7 @@ public class TemplateCreator
         {
             String clusterName = treeMenuDto.getData();
             signalInfo.matchingPattern = matchingPattern.replace(CLUSTER_NAME, clusterName);
-            signalInfo.signalName = signalName + "_" + clusterName;
+            signalInfo.signalName = signalName.replace(CLUSTER_NAME, clusterName);
 
             addSignal(signalInfo);
         }

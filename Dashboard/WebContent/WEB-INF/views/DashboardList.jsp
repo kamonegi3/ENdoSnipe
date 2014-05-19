@@ -5,6 +5,7 @@
 <head>
 <%@ include file="../include/ext/javaScriptInclude.jsp"%>
 <%@ include file="../include/DashboardListInclude.jsp"%>
+<%@ include file="dialog/ReportDialog.jsp"%>
 <%@ include file="common/Header.jsp"%>
 <link rel="stylesheet"
 	href="<%=request.getContextPath()%>/resources/css/common/common.css"
@@ -89,7 +90,7 @@
 			
 			$("#persArea_drop_0_0").resizable("disable");
 
-			// リソースリスト・ダッシュボードリスト用の領域を別に用意する。
+			// リソースリスト・ダッシュボードリスト・レポート出力ダイアログ用の領域を別に用意する。
 			var treeArea = $("<div id='tree_area'></div>");
 			treeArea.appendTo("body");
 			treeArea.hide();
@@ -206,6 +207,7 @@
 			themeUrl : wgp.common.getContextPath()
 			+ "/resources/css/jsTree/style.css"
 		});
+		
 
 		// ダッシュボード一覧ツリーの選択状態の復元用データを取得
 		var resourceDashboardListSelect = null;
@@ -233,7 +235,8 @@
 			});
 
 			var contextMenu0 = new contextMenu("DashboardSwitching", "Dashboard Switching.");
-			var contextMenuArray = [ contextMenu0];
+			var contextMenu1 = new contextMenu("OutputReport", "Output Report.");
+			var contextMenuArray = [ contextMenu0, contextMenu1 ];
 			contextMenuCreator.initializeContextMenu("dashboard_operate", contextMenuArray);
 
 			var option = {
@@ -242,7 +245,55 @@
 				onSelect : function(event, target){
 					if(event.currentTarget.id == "DashboardSwitching"){
 						$("#" + window.resourceDashboardListView.$el.attr("id")).dialog("open");
+						return;
 					}
+					if(event.currentTarget.id == "OutputReport"){
+						var context = null;
+						for(var i=0, len=ENS.tree.contextOption.length; i<len; i++){
+							var tmpCtx = ENS.tree.contextOption[i];
+							if(tmpCtx.menu_id !== ENS.tree.OUTPUT_REPORT_TYPE){
+								continue;
+							}
+							context = tmpCtx;
+						}
+						if(context === null){
+							return;
+						}
+						context.dialogId = "reportDialog";
+						context.okObject = {
+								
+								createReport: function(){
+									
+									var reportDefinition = {
+											clusterName: $("#"+ENS.graphRange.ID_CLUSTER_NAME).val(),
+											dashboardName: $("#"+ENS.graphRange.ID_DASHBOARD_NAME).val(),
+											reportName: $("#reportName").val(),
+											reportTermFrom : $("#jquery-ui-datepicker-from").val(),
+											reportTermTo : $("#jquery-ui-datepicker-to").val()
+									}
+									var settings = {};
+									settings[wgp.ConnectionConstants.SUCCESS_CALL_OBJECT_KEY] = this;
+									settings[wgp.ConnectionConstants.SUCCESS_CALL_FUNCTION_KEY] = "callback";
+									settings.url = ENS.tree.REPORT_ADD_DASHBOARD_URL;
+									settings.data = {
+											reportDefinition: JSON.stringify(reportDefinition)
+									}
+									
+									// 非同期通信でデータを送信する
+									var ajaxHandler = new wgp.AjaxHandler();
+									ajaxHandler.requestServerAsync(settings);
+								},
+								callback: function(){
+									
+								}
+						}
+						context.okFunctionName = "createReport";
+						$("#reportName").val($("#"+ENS.graphRange.ID_DASHBOARD_NAME).val());
+						$("#reportTargetNameArea").hide();
+						new ENS.ReportDialogView(context);
+						return;
+					}
+					
 				}
 			};
 

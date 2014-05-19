@@ -15,6 +15,7 @@ package jp.co.acroquest.endosnipe.report;
 
 import java.io.File;
 import java.util.Calendar;
+import java.util.List;
 
 import jp.co.acroquest.endosnipe.collector.LogMessageCodes;
 import jp.co.acroquest.endosnipe.collector.config.DataCollectorConfig;
@@ -85,9 +86,10 @@ public class ReporterThread implements Runnable, LogMessageCodes
 				String reportName = reportNameSplitList[reportNameSplitLength - 1];
 				String status = data.getStatus();
 				String tempDirectory = System.getProperty("java.io.tmpdir");
+				List<String> matchingPatternList = data.getTargetMeasurementPattern();
 				this.deleteTempFile(tempDirectory);
 				reporter.createReport(this.config, fmTime, toTime, REPORT_PATH, targetItemName,
-					reportName, status);
+					reportName, status, matchingPatternList);
 				this.deleteTempFile(tempDirectory);
 			}
 		}

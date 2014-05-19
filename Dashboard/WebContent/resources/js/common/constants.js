@@ -161,6 +161,7 @@ ENS.tree.SUMMARY_SIGNAL_CHANGE_STATE_URL = wgp.common.getContextPath()
 + "/summarySignal/changeStatus";
 
 ENS.tree.REPORT_ADD_URL = wgp.common.getContextPath() + "/report/add";
+ENS.tree.REPORT_ADD_DASHBOARD_URL = wgp.common.getContextPath() + "/report/addDashboard";
 ENS.tree.REPORT_ADD_DUPLICATE_URL = wgp.common.getContextPath()
 		+ "/report/addDuplicateReport";
 ENS.tree.SIGNAL_NAME = "signalName";

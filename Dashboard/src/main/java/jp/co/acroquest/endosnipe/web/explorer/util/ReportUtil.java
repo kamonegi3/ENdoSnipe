@@ -88,6 +88,7 @@ public class ReportUtil
         reportData.reportId = definitionDto.getReportId();
         reportData.reportName = definitionDto.getReportName();
         reportData.targetMeasurementName = definitionDto.getTargetMeasurementName();
+        reportData.targetMeasurementPattern = definitionDto.getTargetMeasurementPattern();
         Calendar fmTimeCal = definitionDto.getReportTermFrom();
         Calendar toTimeCal = definitionDto.getReportTermTo();
         reportData.reportTermFrom = fmTimeCal;

@@ -60,6 +60,9 @@ public class ElasticSearchUtil
     private static final ENdoSnipeLogger LOGGER = ENdoSnipeLogger
         .getLogger(ElasticSearchUtil.class);
 
+    /** 使用するノード **/
+    private static Node node__;
+	
     /**
      * インスタンス化を防止するユーティリティクラス。
      */
@@ -97,8 +100,11 @@ public class ElasticSearchUtil
                 ImmutableSettings.settingsBuilder().put("cluster.name", esClusterName);
             if (esHostName.equals("") || HOST_LOCALHOST.equals(esHostName))
             {
-                Node node = NodeBuilder.nodeBuilder().settings(clusterSettings).node();
-                client = node.client();
+                if (node__ == null)
+                {
+                    node__ = NodeBuilder.nodeBuilder().settings(clusterSettings).node();
+                }
+                client = node__.client();
             }
             else
             {
@@ -196,8 +202,11 @@ public class ElasticSearchUtil
                 ImmutableSettings.settingsBuilder().put("cluster.name", esClusterName);
             if (esHostName.equals("") || HOST_LOCALHOST.equals(esHostName))
             {
-                Node node = NodeBuilder.nodeBuilder().settings(clusterSettings).node();
-                client = node.client();
+                if (node__ == null)
+                {
+                    node__ = NodeBuilder.nodeBuilder().settings(clusterSettings).node();
+                }
+                client = node__.client();
             }
             else
             {

@@ -13,6 +13,7 @@
 package jp.co.acroquest.endosnipe.web.explorer.dto;
 
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * レポート出力定義のDtoクラス。
@@ -30,6 +31,9 @@ public class ReportDefinitionDto
 
     /** レポート出力の対象の計測対象名。 */
     public String targetMeasurementName_;
+
+    /** レポート出力の対象の正規表現。 */
+    public List<String> targetMeasurementPattern_;
 
     /** 期間の始まりの日時。 */
     private Calendar reportTermFrom_;
@@ -111,6 +115,24 @@ public class ReportDefinitionDto
     public void setTargetMeasurementName(final String targetMeasurementName)
     {
         targetMeasurementName_ = targetMeasurementName;
+    }
+
+    /**
+     * レポート出力の対象の正規表現を取得する。
+     * @return レポート出力の対象の正規表現
+     */
+    public List<String> getTargetMeasurementPattern()
+    {
+        return targetMeasurementPattern_;
+    }
+
+    /**
+     * レポート出力の対象の正規表現を設定する。
+     * @param targetMeasurementPattern レポート出力の対象の正規表現
+     */
+    public void setTargetMeasurementPattern(final List<String> targetMeasurementPattern)
+    {
+        targetMeasurementPattern_ = targetMeasurementPattern;
     }
 
     /**

@@ -132,3 +132,13 @@
 <script type="text/javascript"
 	src="<%=request.getContextPath()%>/resources/js/map/dialog/dashboardElementPropertyView.js">
 </script>
+
+
+<%-- dialog view --%>
+<script type="text/javascript"
+	src="<%=request.getContextPath()%>/resources/js/dialog/dialogView.js">
+</script>
+
+<script type="text/javascript"
+	src="<%=request.getContextPath()%>/resources/js/dialog/reportDialogView.js">
+</script>

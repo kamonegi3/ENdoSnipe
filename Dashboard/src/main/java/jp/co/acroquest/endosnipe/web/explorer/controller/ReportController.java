@@ -13,9 +13,11 @@
 package jp.co.acroquest.endosnipe.web.explorer.controller;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,12 +28,20 @@ import javax.servlet.http.HttpServletResponse;
 import jp.co.acroquest.endosnipe.common.util.MessageUtil;
 import jp.co.acroquest.endosnipe.report.Reporter;
 import jp.co.acroquest.endosnipe.web.explorer.constants.ResponseConstants;
+import jp.co.acroquest.endosnipe.web.explorer.dto.DashboardDto;
+import jp.co.acroquest.endosnipe.web.explorer.dto.DashboardReportDefinitionDto;
+import jp.co.acroquest.endosnipe.web.explorer.dto.MultipleResourceGraphDefinitionDto;
 import jp.co.acroquest.endosnipe.web.explorer.dto.ReportDefinitionDto;
+import jp.co.acroquest.endosnipe.web.explorer.dto.ResourceDto;
 import jp.co.acroquest.endosnipe.web.explorer.dto.ResponseDto;
 import jp.co.acroquest.endosnipe.web.explorer.dto.SchedulingReportDefinitionDto;
+import jp.co.acroquest.endosnipe.web.explorer.entity.DashboardInfo;
 import jp.co.acroquest.endosnipe.web.explorer.entity.ReportDefinition;
 import jp.co.acroquest.endosnipe.web.explorer.entity.SchedulingReportDefinition;
+import jp.co.acroquest.endosnipe.web.explorer.service.DashboardService;
+import jp.co.acroquest.endosnipe.web.explorer.service.MultipleResourceGraphService;
 import jp.co.acroquest.endosnipe.web.explorer.service.ReportService;
+import jp.co.acroquest.endosnipe.web.explorer.template.meta.Resource;
 import net.arnx.jsonic.JSON;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +61,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/report")
 public class ReportController
 {
+    private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm";
+
     /** シグナル定義のサービスクラスのオブジェクト。 */
     @Autowired
     protected ReportService reportService_;
+
+    /** ダッシュボードサービスクラスのオブジェクト */
+    @Autowired
+    protected DashboardService dashboardService_;
+
+    /** 複数リソースグラフのサービスのオブジェクト */
+    @Autowired
+    protected MultipleResourceGraphService multipleGraphService_;
 
     /**
      * デフォルトコンストラクタ。
@@ -152,7 +172,6 @@ public class ReportController
     {
         ReportDefinitionDto reportDefinitionDto =
                 JSON.decode(reportDefinition, ReportDefinitionDto.class);
-
         boolean isExist = this.reportService_.checkReportName(reportDefinitionDto);
         if (isExist == true)
         {
@@ -173,6 +192,130 @@ public class ReportController
             return addedDefinitionDto;
         }
 
+    }
+
+    /**
+     * レポート出力の定義を新規に追加する。
+     * 
+     * @param reportDefinition
+     *            レポート出力定義のJSONデータ
+     * @return 追加したレポート出力の定義
+     */
+    @RequestMapping(value = "/addDashboard", method = RequestMethod.POST)
+    @ResponseBody
+    public ReportDefinitionDto addDashboardReportDefinition(
+            @RequestParam(value = "reportDefinition") final String reportDefinition)
+    {
+        DashboardReportDefinitionDto dto =
+                JSON.decode(reportDefinition, DashboardReportDefinitionDto.class);
+        List<DashboardInfo> infoList = dashboardService_.getByName(dto.getDashboardName());
+
+        DashboardInfo dashboardInfo = infoList.get(0);
+
+        // リソースIDの一覧を取得する
+        List<String> resourceIdList = getResourceIdList(dashboardInfo);
+
+        // 対象リソースの正規表現一覧を取得する
+        List<String> matchingPatternList =
+                getMatchingPatternList(resourceIdList, dto.getClusterName());
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
+
+        // 開始終了時刻の文字列をCalenderに変換する
+        Date fromDate;
+        Date toDate;
+        try
+        {
+            fromDate = dateFormat.parse(dto.getReportTermFrom());
+            toDate = dateFormat.parse(dto.getReportTermTo());
+        }
+        catch (ParseException ex)
+        {
+            return null;
+        }
+        Calendar fromCal = Calendar.getInstance();
+        fromCal.setTime(fromDate);
+        Calendar toCal = Calendar.getInstance();
+        toCal.setTime(toDate);
+
+        if (".*".equals(dto.getClusterName()))
+        {
+            dto.setClusterName("default");
+        }
+
+        // ReportDefinitionDtoを作成する
+        ReportDefinitionDto reportDefinitionDto = new ReportDefinitionDto();
+        reportDefinitionDto.setReportName("/" + dto.getClusterName() + "/" + dto.getReportName());
+        reportDefinitionDto.setReportTermFrom(fromCal);
+        reportDefinitionDto.setReportTermTo(toCal);
+        reportDefinitionDto.setStatus("Creating");
+        reportDefinitionDto.setTargetMeasurementPattern(matchingPatternList);
+        reportDefinitionDto.setTargetMeasurementName(dto.getReportName());
+
+        // レポートを作成する
+        this.reportService_.createReport(reportDefinitionDto);
+
+        ReportDefinition definition =
+                this.reportService_.convertReportDefinition(reportDefinitionDto);
+
+        // レポート定義をDBに登録する
+        ReportDefinitionDto addedDefinitionDto =
+                this.reportService_.insertReportDefinition(definition);
+
+        return addedDefinitionDto;
+    }
+
+    /**
+     * 対象リソースの正規表現一覧
+     * @param resourceIdList グラフIDのリスト
+     * @param clusterName 選択されているクラスタ名
+     * @return グラフのターゲットを表す正規表現のリスト
+     */
+    private List<String> getMatchingPatternList(final List<String> resourceIdList,
+            final String clusterName)
+    {
+        List<String> matchingPatternList = new ArrayList<String>();
+        for (String graphName : resourceIdList)
+        {
+            MultipleResourceGraphDefinitionDto graphDto =
+                    multipleGraphService_.getmultipleResourceGraphInfo(graphName);
+
+            // 複数リソースグラフの系列が見つからない場合は単一グラフであるため、そのままグラフ名をリストに追加する
+            if (graphDto == null)
+            {
+                matchingPatternList.add(graphName);
+                continue;
+            }
+
+            // ${ClusterName}を選択しているクラスタ名に置換する
+            String mathcingPattern = graphDto.getMeasurementItemPattern();
+            mathcingPattern = mathcingPattern.replaceAll("\\$\\{ClusterName\\}", clusterName);
+            matchingPatternList.add(mathcingPattern);
+        }
+        return matchingPatternList;
+    }
+
+    /**
+     * リソースIDのリストを取得する
+     * @param dashboardInfo ダッシュボード情報
+     * @return リソースIDのリスト
+     */
+    private List<String> getResourceIdList(final DashboardInfo dashboardInfo)
+    {
+        List<String> resourceIdList = new ArrayList<String>();
+        DashboardDto resources = JSON.decode(dashboardInfo.data, DashboardDto.class);
+        for (ResourceDto resource : resources.getResources())
+        {
+            String objectName = resource.getObjectName();
+            if (!objectName.equals(Resource.OBJ_NAME_MULTIPLE_GRAPH)
+                    && !objectName.equals(Resource.OBJ_NAME_GRAPH))
+            {
+                continue;
+            }
+            String resourceId = resource.getResourceId();
+            resourceIdList.add(resourceId);
+        }
+        return resourceIdList;
     }
 
     /**
